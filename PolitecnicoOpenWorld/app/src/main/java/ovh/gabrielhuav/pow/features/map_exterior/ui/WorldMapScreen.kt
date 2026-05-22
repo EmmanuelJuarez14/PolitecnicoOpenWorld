@@ -36,6 +36,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
@@ -58,6 +61,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.math.atan2
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.font.FontFamily
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.osmdroid.util.GeoPoint
@@ -879,12 +883,46 @@ fun WorldMapScreen(
             }
         }
     }
+    // --- SECUENCIA WASTED (TIPO GTA) ---
+    if (uiState.showWastedScreen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0x99000000))
+                .clickable(
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    indication = null,
+                    onClick = {}
+                )
+        ) {
+            var scale by remember { mutableStateOf(0.5f) }
+            LaunchedEffect(Unit) {
+                androidx.compose.animation.core.animate(
+                    initialValue = 0.5f,
+                    targetValue = 1.3f,
+                    animationSpec = tween(durationMillis = 3500, easing = LinearOutSlowInEasing)
+                ) { value, _ -> scale = value }
+            }
+
+            Text(
+                text = "WASTED",
+                color = Color(0xFFD32F2F),
+                fontSize = 60.sp,
+                fontWeight = FontWeight.ExtraBold,
+                fontFamily = FontFamily.Serif,
+                letterSpacing = 6.sp,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .scale(scale)
+            )
+        }
+    }
     // ─── UI SUPERPUESTA: AVISO DE COLECCIONABLE CERCANO ───────────────────────
     uiState.interactionPrompt?.let { promptText ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 70.dp), // Separado del borde superior para no tapar notch
+                .padding(top = 70.dp),
             contentAlignment = Alignment.TopCenter
         ) {
             Text(
@@ -895,7 +933,7 @@ fun WorldMapScreen(
                 letterSpacing = 2.sp,
                 modifier = Modifier
                     .background(
-                        color = Color(0xFF3B0D1B).copy(alpha = 0.85f), // Guinda traslúcido
+                        color = Color(0xFF3B0D1B).copy(alpha = 0.85f),
                         shape = RoundedCornerShape(8.dp)
                     )
                     .padding(horizontal = 24.dp, vertical = 12.dp)
