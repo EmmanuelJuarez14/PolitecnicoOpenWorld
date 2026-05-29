@@ -95,10 +95,11 @@ class MainActivity : ComponentActivity() {
                     // 1. EL ORQUESTADOR GLOBAL: Sincroniza los ajustes en segundo plano
                     // Esto evita recomposiciones destructivas al navegar.
                     val settingsState by settingsViewModel.state.collectAsState()
-                    LaunchedEffect(settingsState.mapProvider, settingsState.showCacheWidget, settingsState.showFpsWidget) {
+                    LaunchedEffect(settingsState.mapProvider, settingsState.showCacheWidget, settingsState.showFpsWidget, settingsState.showRoadNetwork) {
                         worldMapViewModel.setMapProvider(settingsState.mapProvider)
                         worldMapViewModel.toggleCacheWidget(settingsState.showCacheWidget)
                         worldMapViewModel.toggleFpsWidget(settingsState.showFpsWidget)
+                        worldMapViewModel.setShowRoadNetwork(settingsState.showRoadNetwork)
                     }
 
                     val navController = rememberNavController()
@@ -145,6 +146,7 @@ class MainActivity : ComponentActivity() {
                                 onMapProviderChanged = { settingsViewModel.changeMapProvider(it) },
                                 onCacheToggled = { settingsViewModel.toggleCacheWidget(it) },
                                 onFpsToggled = { settingsViewModel.toggleFpsWidget(it) },
+                                onRoadNetworkToggled = { settingsViewModel.toggleRoadNetwork(it) },
                                 onControlTypeChanged = { settingsViewModel.changeControlType(it) },
                                 onControlsScaleChanged = { settingsViewModel.changeControlsScale(it) },
                                 onSwapControlsToggled = { settingsViewModel.toggleSwapControls(it) },
