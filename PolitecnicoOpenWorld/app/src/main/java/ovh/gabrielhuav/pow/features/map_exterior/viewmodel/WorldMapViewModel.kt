@@ -89,12 +89,15 @@ class WorldMapViewModel(
             }
             val appCtx = context.applicationContext
             val database = PowDatabase.getInstance(appCtx)
-            return WorldMapViewModel(
+            val metroStations = ovh.gabrielhuav.pow.data.repository.MetroRepository.loadStations(appCtx)
+            val viewModel = WorldMapViewModel(
                 roadNetworkCache = RoadNetworkCache(database.roadNetworkDao()),
                 tileCache        = TileCache(database.mapTileDao()),
                 settingsRepository = SettingsRepository(appCtx),
                 collectibleRepository = CollectibleRepository(database.collectibleDao())
-            ) as T
+            )
+            viewModel._uiState.update { it.copy(metroStations = metroStations) }
+            return viewModel as T
         }
     }
 
@@ -103,7 +106,7 @@ class WorldMapViewModel(
             controlType   = settingsRepository.getControlType(),
             controlsScale = settingsRepository.getControlsScale(),
             swapControls  = settingsRepository.getSwapControls(),
-            selectedSkin  = settingsRepository.getPlayerSkin()    // ← NUEVO
+            selectedSkin  = settingsRepository.getPlayerSkin()
         )
     )
     val uiState: StateFlow<WorldMapState> = _uiState.asStateFlow()
@@ -112,9 +115,6 @@ class WorldMapViewModel(
     internal val overpassRepository = OverpassRepository()
     internal var roadNetwork: List<MapWay> = emptyList()
 
-    // ─── Red de calles expuesta a la UI ──────────────────────────────────────
-    // La WorldMapScreen consume este Flow para pintar las Polylines de los
-    // caminos transitables ENCIMA de cualquier landmark del Modo Diseñador.
     internal val _roadNetworkFlow = MutableStateFlow<List<MapWay>>(emptyList())
     val roadNetworkFlow: StateFlow<List<MapWay>> = _roadNetworkFlow.asStateFlow()
 
@@ -161,7 +161,7 @@ class WorldMapViewModel(
     internal val ESCOM_OFFSET = 0.001
 
     internal val ESCOM_DOOR_ASSET = "DOORS/ESCOM_DOOR.webp"
-    internal val ESCOM_DOOR_INTERACT_RADIUS = 0.00020   // ~20 m
+    internal val ESCOM_DOOR_INTERACT_RADIUS = 0.00020
 
     internal val _escomItems = MutableStateFlow<List<ActiveCollectible>>(emptyList())
     val escomItems: StateFlow<List<ActiveCollectible>> = _escomItems.asStateFlow()
@@ -227,6 +227,14 @@ class WorldMapViewModel(
         val source = if (fromCache) TileSource.LOCAL_CACHE else TileSource.NETWORK
         if (_uiState.value.tileSource != source) {
             _uiState.update { it.copy(tileSource = source) }
+        }
+    }
+
+    fun teleportToMetroStation(stationName: String) {
+        val station = _uiState.value.metroStations.find { it.name == stationName }
+        if (station != null) {
+            _uiState.update { it.copy(currentLocation = station.location) }
+            // Opcional: Centrar cámara si es necesario
         }
     }
 
@@ -972,6 +980,12 @@ class WorldMapViewModel(
      * navegue a la ruta "zombie_minigame".
      */
     fun handleInteraction() {
+        val nearbyMetro = _uiState.value.nearbyMetroStation
+        if (nearbyMetro != null) {
+            _uiState.update { it.copy(showMetroFade = true) }
+            return
+        }
+
         val nearby = _uiState.value.nearbyCollectible ?: return
 
         when {
@@ -1105,6 +1119,25 @@ class WorldMapViewModel(
 
     fun consumeEscomDoorNavigation() {
         _uiState.update { it.copy(escomDoorFadeComplete = false) }
+    }
+
+    // ─── Metro Stations Fade ───────────────────────────────────────────────────
+    fun onMetroFadeComplete() {
+        val station = _uiState.value.nearbyMetroStation
+        if (station != null) {
+            _uiState.update {
+                it.copy(
+                    showMetroFade = false,
+                    metroFadeCompleteStation = station,
+                    nearbyMetroStation = null,
+                    interactionPrompt = null
+                )
+            }
+        }
+    }
+
+    fun consumeMetroFadeComplete() {
+        _uiState.update { it.copy(metroFadeCompleteStation = null) }
     }
 }
 
