@@ -1646,9 +1646,7 @@ class WorldMapViewModel(
                             longitude = -99.1633282698258,
                             assetPath = "BUILDINGS/BAR/Shine.webp",
                             scaleFactor = 0.50f,
-                            rotationAngle = 285f,
-                            scaleX = 0.50f,
-                            scaleY = 0.50f
+                            rotationAngle = 285f
                         )
                     )
                     entities = dao.getAllLandmarks()
@@ -1686,8 +1684,7 @@ class WorldMapViewModel(
                         name = entity.name,
                         location = GeoPoint(entity.latitude, entity.longitude),
                         assetPath = entity.assetPath,
-                        scaleX = entity.scaleX,
-                        scaleY = entity.scaleY,
+                        scaleFactor = entity.scaleFactor,
                         rotationAngle = entity.rotationAngle,
                         baseWidthMeters = template?.baseWidthMeters ?: 100f,
                         baseHeightMeters = template?.baseHeightMeters ?: 100f,
@@ -1719,9 +1716,7 @@ class WorldMapViewModel(
                     longitude = playerLoc.longitude,
                     assetPath = template.assetPath,
                     scaleFactor = template.defaultScale,
-                    rotationAngle = 0f,
-                    scaleX = template.defaultScale,
-                    scaleY = template.defaultScale
+                    rotationAngle = 0f
                 )
                 val newId = dao.insertLandmark(newEntity)
                 loadLandmarks(context)
@@ -1755,21 +1750,12 @@ class WorldMapViewModel(
         }
     }
 
-    fun scaleXSelectedLandmark(scaleX: Float) {
+    fun scaleSelectedLandmark(scale: Float) {
         val id = _uiState.value.selectedLandmarkId ?: return
         _uiState.update { state ->
             val updated = state.landmarks.map {
-                if (it.id == id) it.copy(scaleX = scaleX) else it
-            }
-            state.copy(landmarks = updated)
-        }
-    }
-
-    fun scaleYSelectedLandmark(scaleY: Float) {
-        val id = _uiState.value.selectedLandmarkId ?: return
-        _uiState.update { state ->
-            val updated = state.landmarks.map {
-                if (it.id == id) it.copy(scaleY = scaleY) else it
+                if (it.id == id) it.copy(scaleFactor = scale)
+                else it
             }
             state.copy(landmarks = updated)
         }
@@ -1837,10 +1823,8 @@ class WorldMapViewModel(
                     latitude = currentLandmark.location.latitude,
                     longitude = currentLandmark.location.longitude,
                     assetPath = currentLandmark.assetPath,
-                    scaleFactor = currentLandmark.scaleX,
-                    rotationAngle = currentLandmark.rotationAngle,
-                    scaleX = currentLandmark.scaleX,
-                    scaleY = currentLandmark.scaleY
+                    scaleFactor = currentLandmark.scaleFactor,
+                    rotationAngle = currentLandmark.rotationAngle
                 )
                 dao.updateLandmark(updatedEntity)
             } catch (e: Exception) {

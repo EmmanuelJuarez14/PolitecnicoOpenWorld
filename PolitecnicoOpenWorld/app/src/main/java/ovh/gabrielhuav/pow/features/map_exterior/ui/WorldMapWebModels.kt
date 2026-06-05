@@ -9,7 +9,5 @@ internal data class LandmarkWebPayload(
     val widthMeters: Float,
     val heightMeters: Float,
     val scale: Float,
-    val scaleX: Float,
-    val scaleY: Float,
     val assetPath: String
 )
