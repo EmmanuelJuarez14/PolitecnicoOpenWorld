@@ -43,6 +43,7 @@ import ovh.gabrielhuav.pow.features.interiores.escom.ui.CanchasFutbolScreen
 import ovh.gabrielhuav.pow.features.interiores.escom.ui.EdificioScreen
 import ovh.gabrielhuav.pow.features.interiores.escom.ui.EstacionamientoScreen
 import ovh.gabrielhuav.pow.features.interiores.escom.ui.MetroStationInteriorScreen
+import ovh.gabrielhuav.pow.features.interiores.escom.ui.MetrobusStationInteriorScreen
 import ovh.gabrielhuav.pow.features.interiores.escom.ui.PalapasScreen
 import ovh.gabrielhuav.pow.features.interiores.escom.ui.DeportivoBeisScreen
 import ovh.gabrielhuav.pow.features.interiores.escom.ui.DeportivoFutbolScreen
@@ -626,6 +627,34 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onTeleportToStation = { newStation, x, y ->
                                     navController.navigate("metro_station_interior/$newStation?spawnX=$x&spawnY=$y") {
+                                        popUpTo("world_map") { inclusive = false }
+                                    }
+                                }
+                            )
+                        }
+                        
+                        // ─── ESTACIONES METROBÚS ──────────────────────────────────
+                        composable(
+                            route = "metrobus_station_interior/{stationName}?spawnX={spawnX}&spawnY={spawnY}",
+                            arguments = listOf(
+                                androidx.navigation.navArgument("stationName") { type = androidx.navigation.NavType.StringType },
+                                androidx.navigation.navArgument("spawnX") { type = androidx.navigation.NavType.FloatType; defaultValue = -1f },
+                                androidx.navigation.navArgument("spawnY") { type = androidx.navigation.NavType.FloatType; defaultValue = -1f }
+                            )
+                        ) { backStackEntry ->
+                            val stationName = backStackEntry.arguments?.getString("stationName") ?: "Desconocida"
+                            val spawnX = backStackEntry.arguments?.getFloat("spawnX") ?: -1f
+                            val spawnY = backStackEntry.arguments?.getFloat("spawnY") ?: -1f
+                            MetrobusStationInteriorScreen(
+                                stationName = stationName,
+                                spawnX = spawnX,
+                                spawnY = spawnY,
+                                onExit = { currentStation ->
+                                    worldMapViewModel.teleportToMetrobusStation(currentStation)
+                                    navController.popBackStack("world_map", inclusive = false)
+                                },
+                                onTeleportToStation = { newStation, x, y ->
+                                    navController.navigate("metrobus_station_interior/$newStation?spawnX=$x&spawnY=$y") {
                                         popUpTo("world_map") { inclusive = false }
                                     }
                                 }
