@@ -18,9 +18,9 @@ import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import ovh.gabrielhuav.pow.data.local.room.PowDatabase
 import ovh.gabrielhuav.pow.data.local.room.entity.LandmarkEntity
-import ovh.gabrielhuav.pow.domain.models.Landmark
-import ovh.gabrielhuav.pow.domain.models.LandmarkAssetTemplate
-import ovh.gabrielhuav.pow.domain.models.LandmarkCatalogManager
+import ovh.gabrielhuav.pow.domain.models.map.Landmark
+import ovh.gabrielhuav.pow.domain.models.map.LandmarkAssetTemplate
+import ovh.gabrielhuav.pow.domain.models.map.LandmarkCatalogManager
 
 fun WorldMapViewModel.loadLandmarks(context: Context) {
     loadExteriorCollisions(context) // ESTO CARGA EL JSON DE MUROS
@@ -35,7 +35,7 @@ fun WorldMapViewModel.loadLandmarks(context: Context) {
 
             if (entities.isEmpty()) {
                 try {
-                    val jsonString = context.assets.open("default_landmarks.json").bufferedReader().use { it.readText() }
+                    val jsonString = context.assets.open("CONFIG/default_landmarks.json").bufferedReader().use { it.readText() }
                     val type = object : TypeToken<List<LandmarkEntity>>() {}.type
                     val defaultEntities: List<LandmarkEntity> = Gson().fromJson(jsonString, type)
                     dao.insertLandmarks(defaultEntities)
@@ -133,7 +133,7 @@ fun WorldMapViewModel.loadLandmarks(context: Context) {
             // Lo hacemos una sola vez para no abrir el archivo por cada edificio.
             if (escomNavGraph == null) {
                 try {
-                    val inputStream = context.assets.open("navgraphs/escom_navgraph.json")
+                    val inputStream = context.assets.open("CONFIG/navgraphs/escom_navgraph.json")
                     val reader = java.io.InputStreamReader(inputStream)
                     escomNavGraph = normalizeNavGraph(Gson().fromJson(reader, ovh.gabrielhuav.pow.domain.models.ai.LandmarkNavGraph::class.java))
                     reader.close()
