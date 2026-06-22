@@ -7,7 +7,7 @@ object ZombieRoomCatalog {
     const val EXIT_TO_WORLD = "__WORLD__"
     // MODO HISTORIA: targetRoomId "sentinela" — una puerta con este destino NO carga otra
     // sala, sino que dispara la salida del motor de interiores hacia la narrativa (cómic
-    // ENCB_OUTRO). Lo intercepta ZombieGameViewModel.goToRoom (igual que EXIT_TO_WORLD).
+    // ENCB_OUTRO). Lo intercepta ZombieInteriorViewModel.goToRoom (igual que EXIT_TO_WORLD).
     const val EXIT_TO_STORY_OUTRO = "__STORY_OUTRO__"
 
     // Sala de INTERIORES de FES Aragón. Es una sala independiente del anillo de ESCOM:
@@ -119,7 +119,7 @@ object ZombieRoomCatalog {
                 ZombieRoom(
                     id = id,
                     type = ZoneType.BUILDING,
-                    backgroundAsset = "ZOMBIES_MOD/interiors/$id.webp",
+                    backgroundAsset = "INTERIORS/ESCOM_APOCALYPSE/$id.webp",
                     displayName = buildingDisplayName(id),
                     worldWidth = 1920f,
                     worldHeight = 1080f,
@@ -146,7 +146,7 @@ object ZombieRoomCatalog {
                     BuildingSpec(
                         id = "fes_edificio",
                         displayName = "Edificio Principal",
-                        backgroundAsset = "ZOMBIES_MOD/interiors/za_edificio.webp",
+                        backgroundAsset = "INTERIORS/ESCOM_APOCALYPSE/za_edificio.webp",
                         zombieCount = 4
                     )
                 )

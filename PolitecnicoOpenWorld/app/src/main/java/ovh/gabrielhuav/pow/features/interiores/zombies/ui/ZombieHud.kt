@@ -196,7 +196,7 @@ fun ZombieHud(
                     WeaponMenuButton(stringResource(R.string.zhud_mode_melee), state.combatMode == CombatMode.MELEE) { onSelectMode(CombatMode.MELEE) }
                     WeaponMenuButton(stringResource(R.string.zhud_mode_ranged), state.combatMode == CombatMode.RANGED) { onSelectMode(CombatMode.RANGED) }
                     // — Inventario —
-                    Text("INVENTARIO", color = Color(0xFFD4AF37), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(R.string.zhud_inventory), color = Color(0xFFD4AF37), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         val totalSlots = 4
                         val unlockedSlots = 1
@@ -226,8 +226,8 @@ fun ZombieHud(
                         }
                     }
                     Text(
-                        if (state.inventoryKeys.isEmpty()) "Vacío. Busca y recoge una llave."
-                        else "Llave guardada. Pruébala en la puerta de avance (→).",
+                        if (state.inventoryKeys.isEmpty()) stringResource(R.string.zhud_inv_empty)
+                        else stringResource(R.string.zhud_inv_has_key),
                         color = Color(0xFFB0BEC5), fontSize = 12.sp
                     )
                     TextButton(onClick = onDismissInventory) { Text(stringResource(R.string.zhud_close), color = Color.White) }
@@ -283,7 +283,7 @@ private fun InventoryKeyIcon(assetPath: String, modifier: Modifier = Modifier) {
     }
     val img = bmp
     if (img != null) {
-        Image(img, contentDescription = "Llave", modifier = modifier)
+        Image(img, contentDescription = stringResource(R.string.cd_key), modifier = modifier)
     } else {
         Text("🔑", fontSize = 24.sp)
     }
@@ -373,7 +373,7 @@ fun ZombieView(
             }
         }
         if (frame != null) {
-            Image(frame, "Zombi", modifier = Modifier.fillMaxSize().graphicsLayer {
+            Image(frame, stringResource(R.string.cd_zombie), modifier = Modifier.fillMaxSize().graphicsLayer {
                 scaleX = if (facingRight) 1f else -1f
                 alpha = if (isDying) 0.35f else 1f
             })
