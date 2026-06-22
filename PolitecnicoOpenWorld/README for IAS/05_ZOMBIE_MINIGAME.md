@@ -14,7 +14,7 @@ autoritativos del servidor** (`MultiplayerInteriores/`); **offline: simulación 
 
 > **🆕 Modo INTERIORES expandible (ESCOM, FES, UAM…):** este es el **motor de INTERIORES** de cualquier
 > edificio/campus, no sólo ESCOM. La sala donde arranca la sesión la fija el arg de navegación
-> **`interiores_zombies?startRoom={id}`** → `ZombieGameViewModel.startRoomId` (default
+> **`interiores_zombies?startRoom={id}`** → `ZombieInteriorViewModel.startRoomId` (default
 > `ZombieRoomCatalog.LOBBY_ID`). La puerta **"Entrada FES Aragón"** entra con `startRoom=fes_interior`.
 >
 > **Cómo añadir un campus (recipe):** `ZombieRoomCatalog` expone el helper **`campusRooms(lobbyId,
@@ -26,7 +26,7 @@ autoritativos del servidor** (`MultiplayerInteriores/`); **offline: simulación 
 > `za_edificio.webp`, `zombieCount=4`). El servidor replica el campus (`server.js` ROOMS: `fes_interior`
 > LOBBY + `fes_edificio` BUILDING).
 >
-> **Lógica campus-agnóstica (sin hardcodear el lobby de ESCOM):** `ZombieGameViewModel.lobbyForBuilding(id)`
+> **Lógica campus-agnóstica (sin hardcodear el lobby de ESCOM):** `ZombieInteriorViewModel.lobbyForBuilding(id)`
 > resuelve el lobby de CADA edificio (puerta entrante); lo usan `spawnAtLobbyDoorFor`, el respawn de WASTED
 > y el diálogo "volver al lobby" (`pendingLobbyTarget`). Antes estos clavaban `LOBBY_ID` (ESCOM).
 > La **mano/activación de zombis** del lobby sigue siendo de ESCOM (gateada por `LOBBY_ID`): **offline**,
@@ -65,12 +65,24 @@ Modelos de dominio (ZombieEntity, SkillEffect, ZombieRoom, CollisionMatrix…) �
 
 ---
 
+## Arquitectura: DOS motores de interiores (no confundir)
+- **`features/interiores/escom/viewmodel/InteriorViewModel.kt`** = interiores **simples** basados en grid
+  (auditorio, biblioteca, cafetería, canchas…), **sin zombis**. (Por eso el VM de abajo NO puede llamarse
+  `InteriorViewModel`: ese nombre ya está tomado.)
+- **`features/interiores/zombies/viewmodel/ZombieInteriorViewModel.kt`** = interior de **supervivencia con
+  ZOMBIS** (salas de edificio ESCOM + FES, en píxeles, con combate/MP/puzzle de llave). La **lógica de
+  INTERIOR** (salas, movimiento, puertas, red, llave) vive en el VM; la **CAPA ZOMBI** está separada en
+  `ZombieCombat.kt` (combate) y `ZombieGameTick.kt` (simulación). Hoy el modo zombi en interiores solo
+  corre en ESCOM/FES.
+
 ## Key files
 
 | Tema / Concern | Archivo / File |
 |---|---|
-| Lógica/estado/red | `viewmodel/ZombieGameViewModel.kt` (~1070 líneas) |
+| Lógica/estado/red INTERIOR (salas, movimiento, puertas, puzzle llave, networking) | `viewmodel/ZombieInteriorViewModel.kt` (~996 líneas; RENOMBRADO desde ZombieGameViewModel) |
+| 🆕 CAPA ZOMBI — combate (melee, disparo, muerte+drop, efectos/skills) | `viewmodel/ZombieCombat.kt` (NUEVO, refactor — extensiones del VM) |
 | Tick (offline/online, movimiento zombi, knockback) | `viewmodel/ZombieGameTick.kt` |
+| 🆕 Modo Diseñador (matriz colisión + waypoints: pintar/redimensionar, mover puertas, guardar/exportar/importar) | `viewmodel/ZombieGameDesigner.kt` (NUEVO, refactor — extensiones del VM) |
 | Constantes de gameplay | `viewmodel/ZombieGameConstants.kt` |
 | Estado UI | `viewmodel/ZombieGameState.kt` |
 | Modelos de red (cliente) | `viewmodel/Zombienetmodels.kt` |
@@ -164,7 +176,7 @@ el mismo sliding por eje, respetando colisiones.
 
 ---
 
-## `ZombieGameViewModel.kt` — API
+## `ZombieInteriorViewModel.kt` — API
 
 **Red / network (online):** `connectIfNeeded()`, `sendJoinRoom()`, `handleServerMessage(json)`,
 `upsertRemote(m)`, `pushRemotePlayersToState()`, `sendPlayerUpdate(now)`,
@@ -200,12 +212,14 @@ descarta). Render `KeyGroundItem` (suelo) / `InventoryKeyIcon` (slot, imagen rea
 `setRunning(running)`, `onInteract()`, `confirmExitToLobby/dismissExitToLobby`,
 `triggerWastedSequence()`, `showVictory()`, `consumeExit()`, `onZombieCinematicDismissed()`.
 
-**Modo diseñador / designer:** `toggleDesignerMode()`, `setDesignerTarget(target)`,
-`setDesignerBrushWall(wall)`, `paintCellAtWorld(x, y)`, `resizeDesignerMatrixBy(dCols, dRows)`,
-`saveDesignerMatrix/resetDesignerMatrix`, puertas (`selectDoorAtWorld`, `moveSelectedDoorToWorld`,
-`saveDesignerWaypoints`, `resetDesignerWaypoints`), import/export a Uri
-(`exportMatricesToUri/importMatricesFromUri`, `exportWaypointsToUri/importWaypointsFromUri`),
-`defaultDesignerRows(room)`. `Factory(...)`.
+**Modo diseñador / designer (🆕 ahora en `ZombieGameDesigner.kt` como EXTENSIONES del VM, no miembros):**
+`toggleDesignerMode()`, `setDesignerTarget(target)`, `setDesignerBrushWall(wall)`,
+`paintCellAtWorld(x, y)`, `resizeDesignerMatrixBy(dCols, dRows)`, `saveDesignerMatrix/resetDesignerMatrix`,
+puertas (`selectDoorAtWorld`, `moveSelectedDoorToWorld`, `saveDesignerWaypoints`, `resetDesignerWaypoints`),
+import/export a Uri (`exportMatricesToUri/importMatricesFromUri`, `exportWaypointsToUri/importWaypointsFromUri`),
+`defaultDesignerRows(room)`. Como son extensiones, `ui/ZombieGameScreen.kt` las **importa explícitamente**
+(15 imports) — incluidas las referencias acotadas `viewModel::paintCellAtWorld` (Kotlin permite `::` a
+extensiones). No quedó gemelo miembro. `Factory(...)` sigue en el VM.
 
 ## Modelos de red cliente / client net models — `Zombienetmodels.kt`
 
